@@ -1,3 +1,6 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '../utils/html_sanitizer.dart';
@@ -59,8 +62,45 @@ class _EmailWebViewState extends State<EmailWebView> {
     }
   }
 
+  bool get _isAndroid => !kIsWeb && Platform.isAndroid;
+
   void _onZoomChanged() {
     _loadContent();
+  }
+
+  /// Build platform-aware WebView settings.
+  /// Some properties (builtInZoomControls, blockNetworkLoads, etc.)
+  /// are Android-only. On macOS/iOS, WKWebView handles zoom natively
+  /// and images are controlled via CSS/sanitization instead.
+  InAppWebViewSettings _buildSettings() {
+    final settings = InAppWebViewSettings(
+      // Cross-platform settings
+      supportZoom: true,
+      javaScriptEnabled: false,
+      transparentBackground: true,
+      verticalScrollBarEnabled: false,
+      horizontalScrollBarEnabled: false,
+    );
+
+    if (_isAndroid) {
+      // Android-only (WebView/Chromium)
+      settings.builtInZoomControls = true;
+      settings.displayZoomControls = false;
+      settings.useWideViewPort = true;
+      settings.loadWithOverviewMode = widget.zoomController.overviewMode;
+      settings.textZoom = widget.zoomController.textZoomPercent;
+      settings.allowFileAccess = false;
+      settings.blockNetworkLoads = !widget.showImages;
+      settings.blockNetworkImage = !widget.showImages;
+      settings.mixedContentMode =
+          MixedContentMode.MIXED_CONTENT_NEVER_ALLOW;
+      settings.overScrollMode = OverScrollMode.OVER_SCROLL_NEVER;
+    }
+    // macOS/iOS: WKWebView handles pinch-to-zoom natively.
+    // Font size is controlled via CSS (already in _buildHtml).
+    // Image blocking is handled by the sanitizer.
+
+    return settings;
   }
 
   String _buildHtml() {
@@ -149,32 +189,7 @@ $sanitized
                   mimeType: 'text/html',
                   encoding: 'utf-8',
                 ),
-                initialSettings: InAppWebViewSettings(
-                  // Zoom — mirrors WebViewEx.java lines 87-88
-                  supportZoom: true,
-                  builtInZoomControls: true,
-                  displayZoomControls: false,
-
-                  // Layout — mirrors WebViewEx.java lines 84-85
-                  useWideViewPort: true,
-                  loadWithOverviewMode: widget.zoomController.overviewMode,
-
-                  // Text auto-sizing (like LayoutAlgorithm.TEXT_AUTOSIZING)
-                  textZoom: widget.zoomController.textZoomPercent,
-
-                  // Security — mirrors WebViewEx.java lines 92-96
-                  javaScriptEnabled: false,
-                  allowFileAccess: false,
-                  blockNetworkLoads: !widget.showImages,
-                  blockNetworkImage: !widget.showImages,
-                  mixedContentMode: MixedContentMode.MIXED_CONTENT_NEVER_ALLOW,
-
-                  // Appearance
-                  transparentBackground: true,
-                  verticalScrollBarEnabled: false,
-                  horizontalScrollBarEnabled: false,
-                  overScrollMode: OverScrollMode.OVER_SCROLL_NEVER,
-                ),
+                initialSettings: _buildSettings(),
                 onWebViewCreated: (controller) {
                   _controller = controller;
                 },

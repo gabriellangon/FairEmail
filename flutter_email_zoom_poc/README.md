@@ -36,13 +36,33 @@ Proof of concept implementing FairEmail-equivalent smart zoom and email security
 | Encrypted | DKIM+SPF+DMARC ✓ | PGP encrypted | Encryption UI |
 | Invoice | DKIM only | None | Partial auth |
 
+## Platforms
+
+| Platform | WebView Engine | Zoom | Notes |
+|----------|---------------|------|-------|
+| Android  | Chromium WebView | builtInZoomControls + textZoom + pinch | Full feature parity |
+| iOS      | WKWebView | CSS font-size + pinch (native) | Image blocking via sanitizer |
+| macOS    | WKWebView | CSS font-size + pinch (native) | Needs sandbox entitlements |
+
 ## Running
 
 ```bash
 cd flutter_email_zoom_poc
 flutter pub get
+
+# Android
 flutter run
+
+# macOS
+flutter run -d macos
+
+# iOS
+flutter run -d ios
 ```
+
+### macOS setup
+Ensure `macos/Runner/*.entitlements` include `com.apple.security.network.client = true`
+for the WebView to load content.
 
 ## Architecture
 
