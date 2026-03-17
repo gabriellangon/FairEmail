@@ -194,15 +194,22 @@ $sanitized
                   _controller = controller;
                 },
                 onLoadStop: (controller, url) async {
-                  // Auto-size height to content
-                  final height = await controller.evaluateJavascript(
-                    source: 'document.body.scrollHeight',
-                  );
-                  if (height != null && mounted) {
-                    setState(() {
-                      _contentHeight = (height as num).toDouble() + 16;
-                      _loading = false;
-                    });
+                  // Try to auto-size height to content.
+                  // JS is disabled for security, so this may return null.
+                  try {
+                    final height = await controller.evaluateJavascript(
+                      source: 'document.body.scrollHeight',
+                    );
+                    if (height != null && mounted) {
+                      setState(() {
+                        _contentHeight = (height as num).toDouble() + 16;
+                      });
+                    }
+                  } catch (_) {
+                    // JS disabled — use default height
+                  }
+                  if (mounted) {
+                    setState(() => _loading = false);
                   }
                 },
                 onScaleChanged: (controller, oldScale, newScale) {
