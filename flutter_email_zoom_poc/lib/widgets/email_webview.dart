@@ -212,7 +212,7 @@ $sanitized
                     setState(() => _loading = false);
                   }
                 },
-                onScaleChanged: (controller, oldScale, newScale) {
+                onZoomScaleChanged: (controller, oldScale, newScale) {
                   // Persist scale per message (like AdapterMessage onScaleChanged)
                   widget.zoomController.setMessageScale(
                     widget.messageId,
